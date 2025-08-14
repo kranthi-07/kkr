@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Phone OTP Verification</title>
+</head>
+
+<body>
+    <h2>Phone Number Verification</h2>
+
+    <div>
+        <label for="phone">Enter phone number (with country code):</label><br />
+        <input type="text" id="phone" placeholder="+1234567890" /><br /><br />
+        <button id="send-otp-btn">Send OTP</button>
+    </div>
+
+    <div id="otp-section" style="display:none; margin-top:20px;">
+        <label for="otp">Enter OTP:</label><br />
+        <input type="text" id="otp" /><br /><br />
+        <button id="verify-otp-btn">Verify OTP</button>
+    </div>
+
+    <div id="message" style="color: red; margin-top: 15px;"></div>
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+
+    <script>
+        // TODO: Replace with your Firebase project config
+        const firebaseConfig = {
+            apiKey: "AIzaSyBtpBOmNeJyTW5QmDouHADIeVjPPcq5dCY",
+            authDomain: "dabdab-759cc.firebaseapp.com",
+            projectId: "dabdab-759cc",
+            storageBucket: "dabdab-759cc.firebasestorage.app",
+            messagingSenderId: "898423460810",
+            appId: "1:898423460810:web:8c2eaadb69a60204d83533",
+            measurementId: "G-MEKZ5QFMHV"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+
+        const auth = firebase.auth();
+
+        // Setup invisible reCAPTCHA
+        window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('send-otp-btn', {
+            size: 'invisible',
+            callback: (response) => {
+                // reCAPTCHA solved, allow sendOTP
+                sendOTP();
+            }
+        });
+
+        const sendOtpBtn = document.getElementById('send-otp-btn');
+        const verifyOtpBtn = document.getElementById('verify-otp-btn');
+        const otpSection = document.getElementById('otp-section');
+        const messageDiv = document.getElementById('message');
+
+        let confirmationResult;
+
+        sendOtpBtn.addEventListener('click', () => {
+            messageDiv.textContent = "";
+            const phoneNumber = document.getElementById('phone').value.trim();
+
+            if (!phoneNumber) {
+                messageDiv.textContent = "Please enter a valid phone number.";
+                return;
+            }
+
+            // Show reCAPTCHA and send OTP
+            auth.signInWithPhoneNumber(phoneNumber, window.recaptchaVerifier)
+                .then((result) => {
+                    confirmationResult = result;
+                    messageDiv.style.color = "green";
+                    messageDiv.textContent = "OTP sent! Please check your phone.";
+                    otpSection.style.display = "block";
+                })
+                .catch((error) => {
+                    console.error(error);
+                    messageDiv.style.color = "red";
+                    messageDiv.textContent = error.message || "Failed to send OTP.";
+                });
+        });
+
+        verifyOtpBtn.addEventListener('click', () => {
+            messageDiv.textContent = "";
+            const code = document.getElementById('otp').value.trim();
+
+            if (!code) {
+                messageDiv.textContent = "Please enter the OTP.";
+                return;
+            }
+
+            confirmationResult.confirm(code)
+                .then((result) => {
+                    const user = result.user;
+                    messageDiv.style.color = "green";
+                    messageDiv.textContent = "Phone verified successfully!";
+
+                    // You can now send user.phoneNumber to your backend to register user
+                    console.log("Verified user phone:", user.phoneNumber);
+
+                    // Example: send user info to your backend here using fetch POST
+                    /*
+                    fetch('http://localhost:3000/signup', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ phone: user.phoneNumber /*, other signup data if any * / }),
+                    })
+                    .then(res => res.json())
+                    .then(data => console.log('Backend signup response:', data));
+                    */
+
+                })
+                .catch((error) => {
+                    console.error(error);
+                    messageDiv.style.color = "red";
+                    messageDiv.textContent = "Invalid OTP. Please try again.";
+                });
+        });
+    </script>
+</body>
+
+</html>

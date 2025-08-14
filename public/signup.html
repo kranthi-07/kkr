@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Signup</title>
+</head>
+
+<body>
+  <h2>Signup</h2>
+  <form id="signupForm">
+    <input type="text" id="username" placeholder="Username" required><br>
+    <input type="password" id="password" placeholder="Password" required><br>
+    <input type="text" id="mobile" placeholder="Mobile" required><br>
+    <input type="text" id="address" placeholder="Address" required><br>
+    <button type="submit">Signup</button>
+  </form>
+
+  <script>
+    document.getElementById('signupForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const data = {
+        username: document.getElementById('username').value,
+        password: document.getElementById('password').value,
+        mobile: document.getElementById('mobile').value,
+        address: document.getElementById('address').value
+      };
+      const res = await fetch('http://localhost:5000/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      const result = await res.json();
+      alert(result.message || result.error);
+    });
+  </script>
+</body>
+
+</html>
