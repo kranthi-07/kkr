@@ -61,7 +61,20 @@ app.post("/login", async (req, res) => {
   }
 });
 
-// API to Update User Data
+// Get profile details
+app.get('/api/profile', async (req, res) => {
+  if (!req.session.userId) {
+    return res.status(401).json({ error: 'Not logged in' });
+  }
+  try {
+    const user = await User.findById(req.session.userId).select('-password');
+    res.json(user);
+  } catch (err) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Update profile details
 app.put('/api/profile', async (req, res) => {
   if (!req.session.userId) {
     return res.status(401).json({ error: 'Not logged in' });

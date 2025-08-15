@@ -20,10 +20,6 @@
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
 
-        h2 {
-            margin-bottom: 20px;
-        }
-
         input {
             padding: 10px;
             width: 90%;
@@ -51,6 +47,7 @@
 
         .save-btn {
             background-color: #2196F3;
+            display: none;
         }
 
         .logout-btn {
@@ -65,7 +62,7 @@
         <input type="text" id="name" readonly>
         <input type="email" id="email" readonly>
         <button class="btn edit-btn" onclick="enableEdit()">Edit</button>
-        <button class="btn save-btn" onclick="saveProfile()" style="display:none;">Save</button>
+        <button class="btn save-btn" onclick="saveProfile()">Save</button>
         <button class="btn logout-btn" onclick="logout()">Logout</button>
     </div>
 
@@ -110,9 +107,7 @@
         }
 
         function logout() {
-            fetch('/logout').then(() => {
-                window.location.href = '/login.html';
-            });
+            fetch('/logout').then(() => window.location.href = '/login.html');
         }
 
         loadProfile();

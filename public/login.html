@@ -30,4 +30,7 @@
             alert("Server error");
         }
     });
+
+    req.session.userId = user._id; // Store user ID in session
+    res.redirect('/profile.html'); // Go to profile page
 </script>
