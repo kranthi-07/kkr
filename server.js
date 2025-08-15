@@ -1,106 +1,78 @@
-require('dotenv').config();
-const express = require('express');
-const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
-const cors = require('cors');
-const bodyParser = require('body-parser');
-const path = require('path');
-const User = require('./models/user');
+const express = require("express");
+const mongoose = require("mongoose");
+const dotenv = require("dotenv");
+const bodyParser = require("body-parser");
+const path = require("path");
 
+dotenv.config();
 const app = express();
 
-// ===== Check if MONGO_URI is loaded =====
-if (!process.env.MONGO_URI) {
-  console.error("❌ ERROR: MONGO_URI is not set in .env file");
-  process.exit(1); // stop the server immediately
-}
-
 // Middleware
-app.use(cors());
 app.use(bodyParser.json());
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, "public")));
 
-// MongoDB connection
+// MongoDB Connection
 mongoose.connect(process.env.MONGO_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true
 })
-  .then(() => console.log("✅ MongoDB connected"))
-  .catch(err => {
-    console.error("❌ MongoDB connection error:", err.message);
-    process.exit(1);
-  });
+  .then(() => console.log("✅ MongoDB Connected"))
+  .catch(err => console.error("❌ MongoDB Error:", err));
 
-// Signup route
-app.post('/signup', async (req, res) => {
+// User Schema
+const userSchema = new mongoose.Schema({
+  username: String,
+  password: String,
+  mobile: String,
+  address: String
+});
+const User = mongoose.model("User", userSchema);
+
+// SIGNUP
+app.post("/signup", async (req, res) => {
   const { username, password, mobile, address } = req.body;
   try {
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const user = new User({ username, password: hashedPassword, mobile, address });
-    await user.save();
-    res.status(201).json({ message: "Signup successful" });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+    const userExists = await User.findOne({ username });
+    if (userExists) {
+      return res.json({ message: "Username already exists" });
+    }
+    const newUser = new User({ username, password, mobile, address });
+    await newUser.save();
+    res.json({ message: "Signup successful" });
+  } catch (error) {
+    res.json({ message: "Signup failed", error: error.message });
   }
 });
 
-// Login route
-app.post('/login', async (req, res) => {
+// LOGIN
+app.post("/login", async (req, res) => {
   const { username, password } = req.body;
   try {
-    const user = await User.findOne({ username });
-    if (!user) return res.status(404).json({ error: "User not found" });
-
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(400).json({ error: "Invalid password" });
-
-    res.json({ message: "Login successful", userId: user._id });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-
-
-app.get("/",(req, res)=>{
-  res.sendFile(__dirname + "/public/signup.html");
-});
-
-
-// Get profile
-app.get('/profile/:id', async (req, res) => {
-  try {
-    const user = await User.findById(req.params.id).select("-password");
-    if (!user) return res.status(404).json({ error: "User not found" });
-    res.json(user);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// Update profile
-app.put('/profile/:id', async (req, res) => {
-  const { username, mobile, address, password } = req.body;
-  try {
-    const updateData = { username, mobile, address };
-
-    if (password && password.trim() !== "") {
-      const hashedPassword = await bcrypt.hash(password, 10);
-      updateData.password = hashedPassword;
+    const user = await User.findOne({ username, password });
+    if (!user) {
+      return res.json({ message: "Invalid username or password" });
     }
+    res.json({ message: "Login successful", user });
+  } catch (error) {
+    res.json({ message: "Login failed", error: error.message });
+  }
+});
 
-    const updatedUser = await User.findByIdAndUpdate(
-      req.params.id,
-      updateData,
+// UPDATE PROFILE
+app.post("/update-profile", async (req, res) => {
+  const { username, mobile, address } = req.body;
+  try {
+    const updated = await User.findOneAndUpdate(
+      { username },
+      { mobile, address },
       { new: true }
-    ).select("-password");
-
-    res.json(updatedUser);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+    );
+    res.json({ message: "Profile updated successfully", user: updated });
+  } catch (error) {
+    res.json({ message: "Profile update failed", error: error.message });
   }
 });
 
 // Start server
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`🚀 Server running at http://localhost:${PORT}`));
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`🚀 Server running on port ${ PORT }`));
