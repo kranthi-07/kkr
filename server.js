@@ -39,25 +39,24 @@ app.post('/signup', async (req, res) => {
 
 // Login route
 // LOGIN route
-app.post('/login', async (req, res) => {
+app.post("/login", async (req, res) => {
+  const { email, password } = req.body;
+
   try {
-    const { email, password } = req.body;
-
-    // Find user
     const user = await User.findOne({ email });
+
     if (!user) {
-      return res.status(400).json({ message: 'User not found' });
+      return res.status(400).json({ message: "User not found" });
     }
 
-    // Compare password (plain text here, but should be hashed)
-    if (user.password !== password) {
-      return res.status(400).json({ message: 'Invalid password' });
+    if (user.password !== password) {  // If you're using hashed passwords, compare here
+      return res.status(400).json({ message: "Wrong password" });
     }
 
-    res.json({ message: 'Login successful' });
+    res.json({ message: "Login successful" });
   } catch (err) {
-    console.error('Login error:', err);
-    res.status(500).json({ message: 'Server error' });
+    console.error("Login error:", err);
+    res.status(500).json({ message: "Server error" });
   }
 });
 
