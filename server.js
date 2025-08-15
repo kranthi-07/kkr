@@ -20,14 +20,18 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // Signup route
 app.post('/signup', async (req, res) => {
-  const { name, email, password } = req.body;
   try {
+    console.log("Form Data:", req.body); // log incoming data
+
+    const { name, email, password } = req.body;
+
     const newUser = new User({ name, email, password });
     await newUser.save();
+
     res.redirect('/success.html');
-  } catch (err) {
-    console.log(err);
-    res.status(400).send("Error signing up");
+  } catch (error) {
+    console.error("Error signing up:", error); // detailed log
+    res.status(500).send("Error signing up: " + error.message);
   }
 });
 
@@ -46,4 +50,4 @@ app.post('/login', async (req, res) => {
   }
 });
 
-app.listen(PORT, () => console.log(`🚀 Server running on port ${ PORT }`));
+app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
