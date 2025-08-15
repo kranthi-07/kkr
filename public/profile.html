@@ -3,17 +3,120 @@
 
 <head>
     <title>Profile</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f2f2f2;
+            text-align: center;
+            padding: 50px;
+        }
+
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            max-width: 400px;
+            margin: auto;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            margin-bottom: 20px;
+        }
+
+        input {
+            padding: 10px;
+            width: 90%;
+            margin: 5px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            text-align: center;
+            font-size: 16px;
+        }
+
+        .btn {
+            margin-top: 15px;
+            padding: 10px;
+            width: 100%;
+            border: none;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+
+        .edit-btn {
+            background-color: #4CAF50;
+        }
+
+        .save-btn {
+            background-color: #2196F3;
+        }
+
+        .logout-btn {
+            background-color: #ff4b5c;
+        }
+    </style>
 </head>
 
 <body>
-    <h1>Profile</h1>
-    <form id="profileForm">
-        <input type="text" id="mobile" placeholder="Mobile"><br>
-        <input type="text" id="address" placeholder="Address"><br>
-        <button type="submit">Update Profile</button>
-    </form>
+    <div class="container">
+        <h2>Your Profile</h2>
+        <input type="text" id="name" readonly>
+        <input type="email" id="email" readonly>
+        <button class="btn edit-btn" onclick="enableEdit()">Edit</button>
+        <button class="btn save-btn" onclick="saveProfile()" style="display:none;">Save</button>
+        <button class="btn logout-btn" onclick="logout()">Logout</button>
+    </div>
 
+    <script>
+        async function loadProfile() {
+            const res = await fetch('/api/profile');
+            if (res.status === 401) {
+                window.location.href = '/login.html';
+            } else {
+                const data = await res.json();
+                document.getElementById('name').value = data.name;
+                document.getElementById('email').value = data.email;
+            }
+        }
 
+        function enableEdit() {
+            document.getElementById('name').removeAttribute('readonly');
+            document.getElementById('email').removeAttribute('readonly');
+            document.querySelector('.edit-btn').style.display = 'none';
+            document.querySelector('.save-btn').style.display = 'block';
+        }
+
+        async function saveProfile() {
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+
+            const res = await fetch('/api/profile', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, email })
+            });
+
+            if (res.ok) {
+                alert('Profile updated successfully!');
+                document.getElementById('name').setAttribute('readonly', true);
+                document.getElementById('email').setAttribute('readonly', true);
+                document.querySelector('.edit-btn').style.display = 'block';
+                document.querySelector('.save-btn').style.display = 'none';
+            } else {
+                alert('Error updating profile');
+            }
+        }
+
+        function logout() {
+            fetch('/logout').then(() => {
+                window.location.href = '/login.html';
+            });
+        }
+
+        loadProfile();
+    </script>
 </body>
 
 </html>

@@ -15,6 +15,7 @@ mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopol
   .catch(err => console.log(err));
 
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.json());
 app.use(bodyParser.json());
 
 // Serve static files
@@ -59,5 +60,24 @@ app.post("/login", async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 });
+
+// API to Update User Data
+app.put('/api/profile', async (req, res) => {
+  if (!req.session.userId) {
+    return res.status(401).json({ error: 'Not logged in' });
+  }
+  try {
+    const { name, email } = req.body;
+    const updatedUser = await User.findByIdAndUpdate(
+      req.session.userId,
+      { name, email },
+      { new: true }
+    ).select('-password');
+    res.json(updatedUser);
+  } catch (err) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
