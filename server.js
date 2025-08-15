@@ -60,6 +60,13 @@ app.post('/login', async (req, res) => {
   }
 });
 
+
+
+app.get("/",(req, res)=>{
+  res.sendFile(__dirname + "/public/signup.html");
+});
+
+
 // Get profile
 app.get('/profile/:id', async (req, res) => {
   try {

@@ -3,74 +3,25 @@
 
 <head>
     <title>Profile</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
-    <h2>Your Profile</h2>
-    <form id="profileForm">
-        <input type="text" id="username" placeholder="Username" required><br>
-        <input type="text" id="mobile" placeholder="Mobile" required><br>
-        <input type="text" id="address" placeholder="Address" required><br>
-        <hr>
-        <h3>Change Password</h3>
-        <input type="password" id="password" placeholder="New Password"><br>
-        <input type="password" id="confirmPassword" placeholder="Confirm New Password"><br>
-        <button type="submit">Update Profile</button>
+    <h2>Profile</h2>
+    <div id="profile"></div>
+
+    <h3>Edit Profile</h3>
+    <form id="editProfileForm">
+        <input type="text" id="editName" placeholder="Name" required>
+        <input type="password" id="editPassword" placeholder="Password" required>
+        <input type="text" id="editMobile" placeholder="Mobile Number" required>
+        <input type="text" id="editAddress" placeholder="Address" required>
+        <button type="submit">Update</button>
     </form>
 
-    <script>
-        const userId = localStorage.getItem('userId');
-        if (!userId) {
-            alert("Please login first");
-            window.location.href = 'login.html';
-        }
+    <button onclick="logout()">Logout</button>
 
-        async function loadProfile() {
-            const res = await fetch(`http://localhost:5000/profile/${userId}`);
-            const data = await res.json();
-            if (data.username) {
-                document.getElementById('username').value = data.username;
-                document.getElementById('mobile').value = data.mobile;
-                document.getElementById('address').value = data.address;
-            } else {
-                alert(data.error);
-            }
-        }
-        loadProfile();
-
-        document.getElementById('profileForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const password = document.getElementById('password').value;
-            const confirmPassword = document.getElementById('confirmPassword').value;
-
-            if (password || confirmPassword) {
-                if (password !== confirmPassword) {
-                    alert("Passwords do not match!");
-                    return;
-                }
-            }
-
-            const updatedData = {
-                username: document.getElementById('username').value,
-                mobile: document.getElementById('mobile').value,
-                address: document.getElementById('address').value,
-            };
-            if (password) {
-                updatedData.password = password;
-            }
-
-            const res = await fetch(`http://localhost:5000/profile/${userId}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(updatedData)
-            });
-
-        const result = await res.json();
-        alert("Profile updated successfully!");
-        document.getElementById('password').value = "";
-        document.getElementById('confirmPassword').value = "";
-        });
-    </script>
+    <script src="profile.js"></script>
 </body>
 
 </html>
