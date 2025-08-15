@@ -38,17 +38,26 @@ app.post('/signup', async (req, res) => {
 });
 
 // Login route
+// LOGIN route
 app.post('/login', async (req, res) => {
-  const { email, password } = req.body;
   try {
-    const user = await User.findOne({ email, password });
-    if (user) {
-      res.redirect('/success.html');
-    } else {
-      res.send("Invalid credentials");
+    const { email, password } = req.body;
+
+    // Find user
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(400).json({ message: 'User not found' });
     }
+
+    // Compare password (plain text here, but should be hashed)
+    if (user.password !== password) {
+      return res.status(400).json({ message: 'Invalid password' });
+    }
+
+    res.json({ message: 'Login successful' });
   } catch (err) {
-    res.status(500).send("Error logging in");
+    console.error('Login error:', err);
+    res.status(500).json({ message: 'Server error' });
   }
 });
 
